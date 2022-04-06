@@ -37,110 +37,135 @@ class Solution
 {
 public:
 	// 121. Best Time to Buy and Sell Stock
-	int maxProfit(vector<int>& prices)
-	{
-		if(0 == prices.size())
+	int maxProfit(vector<int>& prices) {
+		if (prices.size() <= 1)
 			return 0;
 
-		int min_price = prices[0];
+		int buy = prices[0];
 		int max_profit = 0;
-
-		for(auto price : prices)
-		{
-			if(price < min_price)
-				min_price = price;
-			else
-				max_profit = max(max_profit, price - min_price);
-		}
 		
-        return max_profit;
-    }
+		for (auto price : prices) {
+			if (price < buy)
+				buy = price; 
+			else
+				max_profit = max(max_profit, price - buy);
+		}
+
+		return max_profit;
+	}
 
 	// 122. Best Time to Buy and Sell Stock II
-	int maxProfitII(vector<int>& prices)
-	{
-        int n = prices.size();
-		if(0 == n)
+	int maxProfitII(vector<int>& prices) {
+		size_t n = prices.size();
+		if (n <= 1)
 			return 0;
 		
 		int max_profit = 0;
 
-		for(int i = 1; i < n; i++)
-			max_profit += max(0, prices[i] - prices[i-1]);
-        
+		for (size_t i = 1; i < n; ++i)
+			max_profit += max(0, prices[i] - prices[i - 1]);
+
 		return max_profit;
-    }
+	}
 
 	// 309. Best Time to Buy and Sell Stock with Cooldown
-	int maxProfitWithCooldown(vector<int>& prices)
-	{
-        int n = prices.size();
-		if(2 > n)
+	int maxProfitWithCooldown(vector<int>& prices) {
+		size_t n = prices.size();
+		if (n <= 1)
 			return 0;
 
-		vector<int> buy(n, 0);
-		vector<int> sell(n, 0);
+		vector<int> hold(n, 0);
+		vector<int> sold(n, 0);
 
-		buy[0] = -prices[0];
-		buy[1] = max(buy[0], -prices[1]);
-		sell[1] = max(0, buy[0] + prices[1]);
+		hold[0] = -prices[0];
+		hold[1] = max(hold[0], sold[0] - prices[1]);
+		sold[1] = max(sold[0], hold[0] + prices[1]);
 
-		for(int i = 2; i < n; i++)
-		{
-			buy[i] = max(buy[i-1], sell[i-2] - prices[i]);
-			sell[i] = max(sell[i-1], buy[i-1] + prices[i]);
+		for (size_t i = 2; i < n; ++i) {
+			hold[i] = max(hold[i - 1], sold[i - 2] - prices[i]);
+			sold[i] = max(sold[i - 1], hold[i - 1] + prices[i]);
 		}
 
-        return sell.back();
-    }
+		return sold.back();
+	}
 
 	// 714. Best Time to Buy and Sell Stock with Transaction Fee
-	int maxProfitWithTransactionFee(vector<int>& prices, int fee)
-	{
-		int n = prices.size();
-		if(0 == n)
+	int maxProfitWithTransactionFee(vector<int>& prices, int fee) {
+		if (prices.size() <= 1)
 			return 0;
 
-		int buy = -prices[0];
-		int sell = 0;
+		int hold = -prices[0] - fee;
+		int sold = 0;
 
-		for(int price : prices)
-		{
-			int buy_yesterday = buy;
-			buy = max(buy, sell - price);
-			sell = max(sell, buy_yesterday + price - fee);
+		for (auto price : prices) {
+			int hold_tmp = hold;
+			hold = max(hold, sold - price - fee);
+			sold = max(sold, hold_tmp + price);
 		}
 
-		return sell;
-    }
+		return sold;
+	}
 
 	// 123. Best Time to Buy and Sell Stock III (at Most Two Transactions)
-	int maxProfitAtMostTwoTransactions(vector<int>& prices)
-	{
-		int n = prices.size();
-		if(0 == n)
+	// int maxProfitAtMostTwoTransactions(vector<int>& prices) {
+	// 	size_t n = prices.size();
+	// 	if (n <= 1)
+	// 		return 0;
+
+	// 	vector<vector<int>> dp(n + 1, vector<int>(5, INT_MIN));
+
+	// 	dp[0][0] = 0;
+
+	// 	for (size_t i = 1; i <= n; ++i) {
+	// 		for (size_t j = 0; j < 5; ++j) {
+	// 			if (j % 2) {
+	// 				// holding stock
+	// 				dp[i][j] = dp[i - 1][j];
+	// 				if (dp[i - 1][j - 1] != INT_MIN)
+	// 					dp[i][j] = max(dp[i][j], dp[i - 1][ j - 1] - prices[i - 1]);
+	// 			} else {
+	// 				// not holding stock
+	// 				if (j == 0)
+	// 					dp[i][j] = 0;
+	// 				else {
+	// 					dp[i][j] = dp[i - 1][j];
+	// 					if (dp[i - 1][j - 1] != INT_MIN)
+	// 						dp[i][j] = max(dp[i][j], dp[i - 1][ j - 1] + prices[i - 1]);
+	// 				}
+	// 			}
+	// 		}
+	// 	}
+
+	// 	int max_profit = dp[n][0];
+	// 	for (size_t i = 2; i < 5; i += 2)
+	// 		max_profit = max(max_profit, dp[n][i]);
+
+	// 	return max_profit;
+	// }
+
+	// 123. Best Time to Buy and Sell Stock III (at Most Two Transactions)
+	int maxProfitAtMostTwoTransactions(vector<int>& prices) {
+		size_t n = prices.size();
+		if (n <= 1)
 			return 0;
-		
+
 		vector<int> dp1(5, INT_MIN);
 		vector<int> dp2(5);
 
 		dp1[0] = 0;
 
-		for(int i = 0; i < n; i++)
-		{
-			for(int j = 0; j < 5; j++)
-			{
+		for (size_t i = 0; i < n; ++i) {
+			for (size_t j = 0; j < 5; ++j) {
 				dp2[j] = dp1[j];
 
-				if(j%2) // buy
-				{
-					if(dp1[j-1] != INT_MIN)
-						dp2[j] = max(dp2[j], dp1[j-1] - prices[i]);
-				}
-				else // sell
-				{
-					if(j >= 1 && dp1[j-1] != INT_MIN)
-						dp2[j] = max(dp2[j], dp1[j-1] + prices[i]);	
+				if (j % 2) {
+					// holding stock
+					if (dp1[j - 1] != INT_MIN)
+						dp2[j] = max(dp2[j], dp1[j - 1] - prices[i]);
+				} else {
+					// not holding stock
+					if (j > 0 && dp1[j - 1] != INT_MIN)
+						dp2[j] = max(dp2[j], dp1[j - 1] + prices[i]);
 				}
 			}
 
@@ -148,1448 +173,45 @@ public:
 		}
 
 		int max_profit = dp1[0];
-		for(int i = 2; i < 5; i+=2)
+		for (size_t i = 2; i < 5; i += 2)
 			max_profit = max(max_profit, dp1[i]);
 
 		return max_profit;
 	}
 
 	// 188. Best Time to Buy and Sell Stock IV (at Most K Transactions)
-	int maxProfitAtMostKTransactions(int k, vector<int>& prices)
-	{
+	int maxProfitAtMostKTransactions(int k, vector<int>& prices) {
 		int n = prices.size();
-		if(2 > n)
+		if (n <= 1 || k <= 0)
 			return 0;
 		
-		int max_profit = 0;
-
-		if(k >= n/2)
-		{
-			for(int i = 1; i < n; i++)
-			{
-				if(prices[i] > prices[i-1])
-					max_profit += prices[i] - prices[i-1];
-			}
-			return max_profit;
-		}
-
-		int phases = k*2 + 1;
+		size_t phases = 2 * k + 1;
 
 		vector<int> dp1(phases, INT_MIN);
 		vector<int> dp2(phases);
 
 		dp1[0] = 0;
 
-		for(int i = 0; i < n; i++)
-		{
-			dp2[0] = 0;
-
-			for(int j = 1; j < phases; j++)
-			{
+		for (size_t i = 0; i < n; ++i) {
+			for (size_t j = 0; j < phases; ++j) {
 				dp2[j] = dp1[j];
 
-				if(j%2) // buy
-				{
-					if(dp1[j-1] != INT_MIN)
-						dp2[j] = max(dp2[j], dp1[j-1] - prices[i]);
-				}
-				else // sell
-				{
-					if(dp1[j-1] != INT_MIN)
-						dp2[j] = max(dp2[j], dp1[j-1] + prices[i]);
+				if (j % 2 && dp1[j - 1] != INT_MIN) {
+					dp2[j] = max(dp2[j], dp1[j - 1] - prices[i]);
+				} else if (j > 0 && dp1[j - 1] != INT_MIN) {
+					dp2[j] = max(dp2[j], dp1[j - 1] + prices[i]);
 				}
 			}
 
 			swap(dp1, dp2);
 		}
 
-		for(int i = 0; i < phases; i += 2)
-			max_profit = max(max_profit, dp1[i]);
+		int mp = dp1[0];
+		for (size_t i = 2; i < phases; i += 2)
+			mp = max(mp, dp1[i]);
 
-		return max_profit;
+		return mp;
 	}
-
-	// 70. Climbing Stairs
-	int climbStairs(int n)
-	{
-		vector<int> ways = { 0, 1, 2 };
-		if(n >= ways.size())
-		{
-			for(int i = ways.size(); i <= n; i++)
-			{
-				ways.push_back(ways[i-1] + ways[i-2]);
-			}
-		}
-
-		return ways[n];
-    }
-
-	// 746. Min Cost Climbing Stairs
-	int minCostClimbingStairs(vector<int>& cost)
-	{
-        int n = cost.size();
-		if(0 == n)
-			return 0;
-        else if(1 == n)
-			return cost.front();
-
-		vector<int> dp(2*n);
-
-		dp[0] = cost[0];
-		dp[1] = cost[1];
-		dp[2] = INT_MAX;
-		dp[3] = cost[1];
-
-		int len = 4;
-
-		for(int i = 2; i < n; i++)
-		{
-			dp[len] = min(dp[len-3], dp[len-4]) + cost[i];
-			dp[len+1] = min(dp[len-1], dp[len-2]) + cost[i];
-			len += 2;
-		}
-
-		return min(min(dp[len-1], dp[len-2]), min(dp[len-3], dp[len-4]));
-    }
-
-	// 413. Arithmetic Slices
-	int numberOfArithmeticSlices(vector<int>& A)
-	{
-        int n = A.size();
-
-		if(3 > n)
-			return 0;
-
-		vector<int> dp(n, 0);
-
-		for(int i = 2; i < n; i++)
-		{
-			if(A[i]-A[i-1] == A[i-1]-A[i-2])
-				dp[i] = dp[i-1] + 1;
-		}
-        
-		int num = 0;
-		for(int i = 2; i < n; i++)
-			num += dp[i];
-		
-		return num;
-    }
-
-	// 300. Longest Increasing Subsequence
-	// dp[i] does not represent the length of the longest increasing subsequence made of the first i elements.
-	// dp[i] represents the length of the longest increasing subsequence ending at the ith element.
-	// T=O(n^2)
-	// int lengthOfLIS(vector<int>& nums)
-	// {
-	// 	int n = nums.size();
-	// 	if(0 == n)
-	// 		return 0;
-
-	// 	vector<int> dp(n, 1);
-	// 	int max_len = 1;
-
-	// 	for(int i = 1; i < n; i++)
-	// 	{
-	// 		for(int j = i - 1; j >= 0; j--)
-	// 		{
-	// 			if(nums[i] > nums[j])
-	// 				dp[i] = max(dp[i], dp[j]+1);
-	// 		}
-	// 		max_len = max(max_len, dp[i]);
-	// 	}
-
-	// 	return max_len;
-	// }
-
-	// T=O(nlogn)
-	int findIdxOfNumInLIS(vector<int>& lis, int num)
-	{
-		int head = 0, tail = lis.size();
-
-		while(head < tail)
-		{
-			int mid = head + (tail-head)/2;
-			if(num == lis[mid])
-				return mid;
-			else if(num > lis[mid])
-				head = mid + 1;
-			else
-				tail = mid;
-		}
-
-		return head;
-	}
-
-	int lengthOfLIS(vector<int>& nums)
-	{
-		int n = nums.size();
-		if(0 == n)
-			return 0;
-		
-		vector<int> lis;
-
-		for(auto num : nums)
-		{
-			int idx = findIdxOfNumInLIS(lis, num);
-			if(lis.size() == idx)
-				lis.push_back(num);
-			else
-				lis[idx] = num;	
-		}
-
-		return lis.size();
-	}
-
-	// 646. Maximum Length of Pair Chain
-	static bool cmpPairs(const vector<int>& a, const vector<int>& b)
-	{
-		return a[0] < b[0];
-	}
-
-	int findLongestChain(vector<vector<int>>& pairs)
-	{
-        int n = pairs.size();
-		if(0 == n)
-			return 0;
-
-		vector<int> dp(n, 1);
-		int max_len = 1;
-
-		sort(pairs.begin(), pairs.end(), cmpPairs);
-
-		for(int i = 1; i < n; i++)
-		{
-			for(int j = i-1; j >= 0; j--)
-			{
-				if(pairs[i][0] > pairs[j][1])
-					dp[i] = max(dp[i], dp[j]+1);
-			}
-			max_len = max(max_len, dp[i]);
-		}
-
-		return max_len;
-    }
-
-	// 376. Wiggle Subsequence
-	int wiggleMaxLength(vector<int>& nums)
-	{
-		int n = nums.size();
-		if(0 == n)
-			return 0;
-
-		int lw = 1;
-		int rw = 1;
-
-		for(int i = 1; i < n; i++)
-		{
-			if(nums[i] > nums[i-1])
-				rw = lw + 1;
-			else if(nums[i] < nums[i-1])
-				lw = rw + 1;
-		}
-
-		return max(lw, rw);
-    }
-
-	// 198. House Robber
-	int rob(vector<int>& nums)
-	{
-        int n = nums.size();
-		if(0 == n)
-			return 0;
-		else if(1 == n)
-			return nums.front();
-		else if(2 == n)
-			return max(nums[0], nums[1]);
-
-		vector<int> dp(n);
-		dp[0] = nums[0];
-		dp[1] = nums[1];
-		dp[2] = nums[0] + nums[2];
-
-		for(int i = 3; i < n; i++)
-			dp[i] = nums[i] + max(dp[i-2], dp[i-3]);
-
-		return max(dp[n-1], dp[n-2]);
-    }
-
-	// 213. House Robber II
-	int robII(vector<int>& nums)
-	{
-        int n = nums.size();
-		if(0 == n)
-			return 0;
-		else if(1 == n)
-			return nums.front();
-		else if(2 == n)
-			return max(nums[0], nums[1]);
-		else if(3 == n)
-			return *max_element(nums.begin(), nums.end());
-
-		vector<int> dp1(n); // rob from first to the second from last
-		vector<int> dp2(n); // rob from second to last
-
-		dp1[0] = nums[0];
-		dp1[1] = nums[1];
-		dp1[2] = nums[0] + nums[2];
-
-		dp2[0] = 0;
-		dp2[1] = nums[1];
-		dp2[2] = nums[2];
-
-		for(int i = 3; i < n; i++)
-        {
-			dp1[i] = nums[i] + max(dp1[i-2], dp1[i-3]);
-			dp2[i] = nums[i] + max(dp2[i-2], dp2[i-3]);
-		}
-
-		return max(max(dp1[n-2], dp1[n-3]), max(dp2[n-1], dp2[n-2]));
-    }
-
-	// 53. Maximum Subarray
-	int maxSubArray(vector<int>& nums)
-	{
-        int n = nums.size();
-		if(0 == n)
-			return 0;
-
-		int sum = nums[0];
-		int max_sum = sum;
-
-		for(int i = 1; i < n; i++)
-		{
-			sum = max(sum + nums[i], nums[i]);
-			max_sum = max(max_sum, sum);
-		}
-
-		return max_sum;
-    }
-
-	// 1218. Longest Arithmetic Subsequence of Given Difference
-	int longestSubsequence(vector<int>& arr, int difference)
-	{
-		int n = arr.size();
-		if(0 == n)
-			return 0;
-		
-		int max_len = 1;
-		unordered_map<int, int> ss_len;
-
-		for(int num : arr)
-		{
-			int prev_num = num - difference;
-			if(ss_len[prev_num])
-			{
-				ss_len[num] = ss_len[prev_num] + 1;
-				max_len = max(max_len, ss_len[num]);
-			}
-			else
-				ss_len[num] = 1;
-		}
-
-		return max_len;
-    }
-	
-	// 392. Is Subsequence
-	bool isSubsequence(string s, string t)
-	{
-		int start_pos = 0;
-
-		for(char c : s)
-		{
-			start_pos = t.find(c, start_pos);
-			if(start_pos == string::npos)
-				return false;
-			start_pos++;
-		}
-
-		return true;
-    }
-
-	// 1143. Longest Common Subsequence
-	int longestCommonSubsequence(string text1, string text2)
-	{
-		int n1 = text1.length();
-		int n2 = text2.length();
-
-		if(0 == n1 || 0 == n2)
-			return 0;
-		
-		vector<int> dp1(n2+1, 0);
-		vector<int> dp2(n2+1, 0);
-
-		for(char c1 : text1)
-		{
-			for(int i = 1; i <= n2; i++)
-			{
-				if(c1 == text2[i-1])
-					dp2[i] = dp1[i-1] + 1;
-				else
-					dp2[i] = max(dp1[i], dp2[i-1]);
-			}
-			swap(dp1, dp2);
-		}
-
-		return dp1[n2];
-    }
-
-	// 1092. Shortest Common Supersequence
-	string shortestCommonSupersequence(string str1, string str2)
-	{
-		int n1 = str1.length();
-		if(0 == n1)
-			return str2;
-		int n2 = str2.length();
-		if(0 == n2)
-			return str1;
-
-		vector<vector<int>> dp(n1+1, vector<int>(n2+1, 0));
-		int i, j;
-
-		for(i = 1; i <= n1; i++)
-		{
-			for(j = 1; j <= n2; j++)
-			{
-				if(str1[i-1] == str2[j-1])
-					dp[i][j] = dp[i-1][j-1] + 1;
-				else
-					dp[i][j] = max(dp[i-1][j], dp[i][j-1]);
-			}
-		}
-		
-		if(0 == dp[n1][n2])
-			return str1 + str2;
-
-		i--;
-		j--;
-		deque<char> scs;
-		char c;
-
-		while(i || j)
-		{
-			if(!i)
-				c = str2[--j];
-			else if(!j)
-				c = str1[--i];
-			else if(str1[i-1] == str2[j-1])
-				c = str1[--i] = str2[--j];
-			else if(dp[i][j] == dp[i-1][j])
-				c = str1[--i];
-			else if(dp[i][j] == dp[i][j-1])
-				c = str2[--j];
-			
-			scs.push_front(c);
-		}
-
-		return {begin(scs), end(scs)};
-	}
-
-	// 5. Longest Palindromic Substring
-	int lenOfPalindromic(string &s, int l, int r)
-	{
-		while(l >= 0 && r < s.length() && s[l] == s[r])
-			l--, r++;
-		
-		return r-l-1;
-	}
-
-	string longestPalindrome(string s)
-	{
-		int n = s.length();
-		if(0 == n)
-			return s;
-
-		int start_pos = 0;
-		int max_len = 0;
-
-		for(int i = 0; i < n; i++)
-		{
-			if(max_len > 2*(n-i)-1)
-				break;
-
-			int len = max(lenOfPalindromic(s, i, i), lenOfPalindromic(s, i, i+1));
-			if(len > max_len)
-			{
-				start_pos = i - (len-1)/2;
-				max_len = len;
-			}
-		}
-
-		return s.substr(start_pos, max_len);
-    }
-
-	// 516. Longest Palindromic Subsequence
-	int longestPalindromeSubseq(string s)
-	{
-		int n = s.length();
-		if(0 == n)
-			return 0;
-		
-		vector<int> dp1(n+1, 0);
-		vector<int> dp2(n+1, 0);
-
-		for(char c : s)
-		{
-			for(int i = 1; i <= n; i++)
-			{
-				if(c == s[n - i])
-					dp2[i] = dp1[i-1] + 1;
-				else
-					dp2[i] = max(dp1[i], dp2[i-1]);
-			}
-
-			swap(dp1, dp2);
-		}
-
-		return dp1[n];
-    }
-
-	// 583. Delete Operation for Two Strings
-	//  find the minimum number of steps required to make word1 and word2 the same, where in each step you can delete one character in either string.
-	/*
-	In order to determine the minimum number of delete operations needed, we can make use of the length of the longest common sequence among
-	the two given strings s1 and s2, say given by lcs. If we can find this lcs value, we can easily determine the required result
-	as m + n - 2*lcs. Here, m and n refer to the length of the two given strings s1 and s2.
-
-	The above equation works because in case of complete mismatch(i.e. if the two strings can't be equalized at all), the total number of delete
-	operations required will be m + n. Now, if there is a common sequence among the two strings of length lcs, we need to do lcs lesser deletions
-	in both the strings leading to a total of 2lcs lesser deletions, which then leads to the above equation.
-	*/
-	int minDeleteDistance(string word1, string word2)
-	{
-		int n1 = word1.length();
-		int n2 = word2.length();
-
-		if(0 == n1 && 0 == n2)
-			return 0;
-		else if(0 == n1)
-			return n2;
-		else if(0 == n2)
-			return n1;
-
-		vector<int> dp1(n2+1, 0);
-		vector<int> dp2(n2+1, 0);
-
-		for(char c : word1)
-		{
-			for(int i = 1; i <= n2; i++)
-			{
-				if(c == word2[i-1])
-					dp2[i] = dp1[i-1] + 1;
-				else
-					dp2[i] = max(dp1[i], dp2[i-1]);
-			}
-			swap(dp1, dp2);
-		}
-
-		return n1 + n2 - 2*dp1[n2];
-	}
-
-	// 72. Edit Distance
-	int minEditDistance(string word1, string word2)
-	{
-		int n1 = word1.length();
-		int n2 = word2.length();
-
-		if(0 == n1 && 0 == n2)
-			return 0;
-		else if(0 == n1)
-			return n2;
-		else if(0 == n2)
-			return n1;
-
-		vector<vector<int>> dp(n1, vector<int>(n2, 0));
-
-		for(int i = 0; i < n1; i++)
-		{
-			if(word1[i] == word2[0])
-				dp[i][0] = i;
-			else
-			{
-				if(0 == i)
-					dp[i][0] = 1;
-				else
-					dp[i][0] = dp[i-1][0] + 1;
-			}
-		}
-
-		for(int i = 0; i < n2; i++)
-		{
-			if(word2[i] == word1[0])
-				dp[0][i] = i;
-			else
-			{
-				if(0 == i)
-					dp[0][i] = 1;
-				else
-					dp[0][i] = dp[0][i-1] + 1;	
-			}
-		}
-
-		for(int i = 1; i < n1; i++)
-		{
-			for(int j = 1; j < n2; j++)
-			{
-				if(word1[i] == word2[j])
-					dp[i][j] = dp[i-1][j-1];
-				else
-					dp[i][j] = min(dp[i-1][j-1], min(dp[i-1][j], dp[i][j-1])) + 1;
-			}
-		}
-
-		return dp[n1-1][n2-1];
-	}
-
-	// 650. 2 Keys Keyboard
-	// dp[i][j] represents the minimum number of steps to get j 'A' when there are i 'A' in the notepad at this moment.
-	// The permitted operations are to copy the i 'A' only once and then paste multiple times.
-	// int minStepsWith2KeysKeyboard(int n)
-	// {
-	// 	if(n < 2)
-	// 		return 0;
-
-	// 	vector<int> dp1(n+1, 0);
-	// 	vector<int> dp2(n+1, 0);
-
-	// 	for(int i = 2; i <= n; i++)
-	// 		dp1[i] = i;
-			
-    //     for(int i = 2; i <= n/2; i++)
-	// 	{
-	// 		for(int j = i; j <= n; j++)
-	// 		{
-	// 			dp2[j] = dp1[j];
-	// 			if(j > i && j%i == 0)
-	// 				dp2[j] = min(dp2[j], dp2[i] + j/i);
-	// 		}
-	// 		swap(dp1, dp2);
-	// 	}
-
-	// 	return dp1[n];
-    // }
-
-	int minStepsWith2KeysKeyboard(int n)
-	{
-		vector<int> dp(n+1, 0);
-
-        for(int i = 2; i <= n; i++)
-		{
-			dp[i] = i;
-
-			for(int j = 2; j <= i; j++)
-			{
-				if(i%j == 0)
-					dp[i] = min(dp[i], dp[j]+i/j);
-			}
-		}
-
-		return dp[n];
-    }
-
-	// 416. Partition Equal Subset Sum
-	bool canPartition(vector<int>& nums)
-	{
-		int n = nums.size();
-		if (0 == n)
-			return true;
-
-		int sum = accumulate(nums.begin(), nums.end(), 0);
-		if (sum%2)
-			return false;
-
-		sum /= 2;
-
-		vector<int> dp(sum+1, 0);
-		dp[0] = 1;
-
-		for (int num : nums)
-		{
-			if (num > sum)
-				return false;
-			
-			for (int i = sum; i >= num; i--)
-			{
-				if (dp[i - num])
-				{
-					if (i == sum)
-						return true;
-					dp[i] = 1;
-				}
-			}
-		}
-
-		return false;
-    }
-
-	// 494. Target Sum
-	int findTargetSumWays(vector<int>& nums, int S)
-	{
-		int n = nums.size();
-		if (0 == n)
-			return 0;
-		else if (1 == n)
-			return (nums[0] == abs(S));
-
-		int sum = accumulate(nums.begin(), nums.end(), 0);
-		if(abs(S) > sum)
-			return 0;
-
-		int o_idx = sum;
-		sum *= 2;
-		vector<int> dp1(sum+1, 0);
-		vector<int> dp2(sum+1, 0);
-		
-		dp1[o_idx] = 1;
-
-		for (int num : nums)
-		{
-			for (int i = 0; i <= sum; i++)
-			{
-				if (i - num >= 0 && i + num <= sum)
-					dp2[i] = dp1[i-num] + dp1[i+num];
-				else if (i - num >= 0)
-					dp2[i] = dp1[i-num];
-				else if (i + num <= sum)
-					dp2[i] = dp1[i+num];
-			}
-
-			swap(dp1, dp2);
-		}
-
-		return dp1[o_idx + S];
-    }
-
-	// 474. Ones and Zeroes
-	// int findMaxForm(vector<string>& strs, int m, int n)
-	// {
-	// 	if (strs.empty())
-	// 		return 0;
-		
-	// 	vector<vector<int>> dp(m+1, vector<int>(n+1, 0));
-
-	// 	for (auto str : strs)
-	// 	{
-	// 		int zeroes = count(str.begin(), str.end(), '0');
-	// 		int ones = count(str.begin(), str.end(), '1');
-
-	// 		for (int i = m; i >= zeroes; i--)
-	// 		{
-	// 			for (int j = n; j >= ones; j--)
-	// 				dp[i][j] = max(dp[i][j], dp[i - zeroes][j - ones] + 1);
-	// 		}
-	// 	}
-
-	// 	return dp[m][n];
-	// }
-
-	int findMaxForm(vector<string>& strs, int m, int n)
-	{
-		if (strs.empty())
-			return 0;
-
-		vector<vector<int>> dp(m+1, vector<int>(n+1, INT_MIN));
-		int max_form = 0;
-
-		dp[0][0] = 0;
-
-		for (auto str : strs)
-		{
-			int zeroes = count(str.begin(), str.end(), '0');
-			int ones = count(str.begin(), str.end(), '1');
-
-			for (int i = m; i >= zeroes; i--)
-			{
-				for (int j = n; j >= ones; j--)
-				{
-					if (dp[i-zeroes][j-ones] != INT_MIN)
-					{
-						dp[i][j] = max(dp[i][j], dp[i-zeroes][j-ones] + 1);
-						max_form = max(max_form, dp[i][j]);
-					}	
-				}	
-			}
-		}
-
-		return max_form;
-    }
-
-	// AcWing 2. 01 Bag Question
-	int maxWorthFor01Bag()
-	{
-		int N, V;
-		cin >> N;
-		cin >> V;
-
-		vector<int> dp(V+1, 0);
-
-		for (int i = 0; i < N; i++)
-		{
-			int v, w;
-			cin >> v;
-			cin >> w;
-
-			// 0/1 bag, from back to front
-			for (int j = V; j >= v; j--)
-				dp[j] = max(dp[j], dp[j - v] + w);
-		}
-
-		cout << dp[V];
-
-		return 0;
-	}
-
-	// 322. Coin Change
-	int coinChange(vector<int>& coins, int amount)
-	{
-		vector<int> dp(amount+1, INT_MAX); 
-		dp[0] = 0;
-
-		for (int coin : coins)
-		{
-			for (int i = coin; i <= amount; i++)
-			{
-				if (dp[i - coin] != INT_MAX)
-					dp[i] = min(dp[i], dp[i - coin] + 1);
-			}
-		}
-
-		return (INT_MAX == dp[amount]) ? -1 : dp[amount];
-    }
-
-	// 518. Coin Change 2
-	// Same coins in different orders would be thought as 1 combination. So this is unordered complete bag question.
-	int change(int amount, vector<int>& coins)
-	{
-		vector<int> dp(amount+1, 0);
-		dp[0] = 1;
-
-		for (int coin : coins)
-		{
-			for (int i = coin; i <= amount; i++)
-				dp[i] += dp[i - coin];
-		}
-
-		return dp[amount];
-    }
-
-	// AcWing 3. Complete Bag Quesiton
-	int maxWorthForCompleteBag()
-	{
-		int N, V;
-		cin >> N;
-		cin >> V;
-
-		vector<int> dp(V+1, 0);
-
-		for (int i = 0; i < N; i++)
-		{
-			int v, w;
-			cin >> v;
-			cin >> w;
-
-			// complete bag, from front to back
-			for (int j = v; j <= V; j++)
-				dp[j] = max(dp[j], dp[j - v] + w);
-		}
-
-		cout << dp[V];
-
-		return 0;
-	}
-
-	// 139. Word Break
-	// bool wordBreak(string s, vector<string>& wordDict)
-	// {
-	// 	int n = s.length();
-	// 	int m = wordDict.size();
-
-	// 	vector<vector<int>> dp(n+1, vector<int>(m+1, 0));
-	// 	dp[0][0] = 1;
-
-	// 	// dp[i][j] represents that whether first i characters were matched by j words (not first j words since each word can be used out of order).
-
-	// 	for (int i = 1; i <= n; i++)
-	// 	{
-	// 		for (int j = 1; j <= m; j++)
-	// 		{
-	// 			int len = wordDict[j-1].length();
-	// 			if (i >= len && s.substr(i-len, len) == wordDict[j-1])
-	// 			{
-	// 				// key logic: One word equals to the end part of first i characters. Whether those characters ahead of this part also were matched by other words?
-	// 				// You know, we can think of "the characters ahead of this part" as the previous sub question. If its solution is true, so dp[i][j] would be true as well.
-	// 				// first way of writing:
-	// 				for (int k = 0; k <= m; k++)
-    //                 {
-    //                     if (dp[i-len][k])
-	// 					{
-    //                         dp[i][j] = 1;
-    //                         break;
-	// 					}
-    //                 }
-	// 				// second way of writing:
-	// 				// for (int k = 0; k <= m; k++)
-	// 				// 	dp[i][j] = dp[i][j] || dp[i-len][k];
-	// 			}
-	// 		}
-	// 	}
-
-	// 	int ret = 0;
-
-	// 	for (int i = 1; i <= m; i++)
-	// 	{
-	// 		// first way of writing:
-	// 		if (dp[n][i])
-	// 			return 1;
-	// 		// second way of writing:
-	// 		// ret = ret || dp[n][i];
-	// 	}
-
-	// 	return ret;
-	// }
-
-	// Depending on above solution, we can simply it by using one-dimension array instead of two-dimension.
-	// bool wordBreak(string s, vector<string>& wordDict)
-	// {
-    //     int n = s.length();
-
-	// 	vector<int> dp(n+1, 0);
-	// 	dp[0] = 1;
-
-	// 	for (int i = 1; i <= n; i++)
-	// 	{
-	// 		for (auto word : wordDict)
-	// 		{
-	// 			int len = word.length();
-	// 			if (i >= len && s.substr(i - len, len) == word)
-	// 				dp[i] = dp[i] || dp[i - len];
-	// 		}
-	// 	}
-
-	// 	return dp[n];
-    // }
-
-	// The thought is to deal with the solution of sub-quesiton.
-	bool wordBreak(string s, vector<string>& wordDict)
-	{
-		unordered_set<string> words(wordDict.begin(), wordDict.end());
-		int n = s.length();
-		s = " " + s;
-		vector<int> dp(n+1, 0);
-		dp[0] = 1;
-
-		for (int i = 1; i <= n; i++)
-		{
-			for (int j = 0; j < i; j++)
-			{
-				if (dp[j] && words.count(s.substr(j+1, i-j)))
-				{
-					dp[i] = 1;
-					break;
-				}
-			}
-		}
-
-		return dp[n];
-	}
-
-	// 377. Combination Sum IV
-	// Contrast with 518. Coin Change 2, this is ordered complete bag question. So that we should iterate through the bag in outer cycle.
-	int combinationSum4(vector<int>& nums, int target)
-	{
-		int n = nums.size();
-
-		vector<unsigned int> dp(target+1, 0);
-		dp[0] = 1;
-
-		for (int i = 1; i <= target; i++) // iterate through the bag
-		{
-			for (int num : nums)
-			{
-				if (i >= num)
-					dp[i] += dp[i - num];
-			}
-		}
-
-		return dp[target];
-    }
-
-	// AcWing 4. Multiple Bag Quesiton
-	int maxWorthForMultipleBag()
-	{
-		int N, V;
-		cin >> N;
-		cin >> V;
-
-		vector<int> dp(V+1, 0);
-
-		for (int i = 0; i < N; i++)
-		{
-			int v, w, s;
-			cin >> v;
-			cin >> w;
-			cin >> s;
-
-			// multiple bag, from back to front
-			for (int j = V; j >= v; j--)
-			{
-				// attempt multiple possibilities
-				for (int k = 1; k <= s && j >= k*v; k++)
-					dp[j] = max(dp[j], dp[j - k*v] + k*w);
-			}
-		}
-
-		cout << dp[V];
-
-		return 0;
-	}
-
-	// AcWing 5. Multiple Bag Question II
-	int maxWorthForMultipleBagII()
-	{
-		int N, V;
-		cin >> N;
-		cin >> V;
-
-		vector<int> vs;
-		vector<int> ws;
-
-		for (int i = 0; i < N; i++)
-		{
-			int v, w, s;
-			cin >> v;
-			cin >> w;
-			cin >> s;
-
-			// transform multiple bag to 0/1 bag
-			for (int j = 1; j <= s; j *= 2)
-			{
-				vs.push_back(j*v);
-				ws.push_back(j*w);
-				s -= j;
-			}
-			if (s)
-			{
-				vs.push_back(s*v);
-				ws.push_back(s*w);
-			}
-		}
-
-		// solution for 0/1 bag
-		vector<int> dp(V+1, 0);
-
-		for (int i = 0; i < vs.size(); i++)
-		{
-			for (int j = V; j >= vs[i]; j--)
-				dp[j] = max(dp[j], dp[j - vs[i]] + ws[i]);
-		}
-
-		cout << dp[V];
-
-		return 0;
-	}
-
-	// AcWing 6. Multiple Bag Question III
-	int maxWorthForMultipleBagIII()
-	{
-		// I don't know !!! heihei
-
-		return 0;
-	}
-
-	// AcWing 7. Compound Bag Question
-	int maxWorthForCompoundBag()
-	{
-		int N, V;
-		cin >> N;
-		cin >> V;
-
-		vector<int> vs;
-		vector<int> ws;
-		vector<int> ss;
-
-		for (int i = 0; i < N; i++)
-		{
-			int v, w, s;
-			cin >> v;
-			cin >> w;
-			cin >> s;
-
-			if(-1 == s)
-			{
-				vs.push_back(v);
-				ws.push_back(w);
-				ss.push_back(-1);
-			}
-			else if (0 == s)
-			{
-				vs.push_back(v);
-				ws.push_back(w);
-				ss.push_back(0);
-			}
-			else if (s > 0)
-			{
-				for (int j = 1; j <= s; j *= 2)
-				{
-					vs.push_back(v*j);
-					ws.push_back(w*j);
-					ss.push_back(-1);
-					s -= j;	
-				}
-				if (s)
-				{
-					vs.push_back(v*s);
-					ws.push_back(w*s);
-					ss.push_back(-1);
-				}
-			}
-		}
-
-		vector<int> dp(V+1);
-
-		for (int i = 0; i < vs.size(); i++)
-		{
-			if (-1 == ss[i])
-			{
-				for (int j = V; j >= vs[i]; j--)
-					dp[j] = max(dp[j], dp[j - vs[i]] + ws[i]);
-			}
-			else
-			{
-				for (int j = vs[i]; j <= V; j++)
-					dp[j] = max(dp[j], dp[j - vs[i]] + ws[i]);
-			}
-			
-		}
-
-		cout << dp[V];
-
-		return 0;
-	}
-
-	// AcWing 8. Two Dimensional Bag Question --- V: volume limitation of bag, M: weight limitation of bag
-	int maxWorthForTwoDimensionalBag()
-	{
-		int N, V, M;
-		cin >> N;
-		cin >> V;
-		cin >> M;
-
-		vector<vector<int>> dp(V+1, vector<int>(M+1, 0));
-
-		for(int i = 0; i < N; i++)
-		{
-			int v, m, w;
-			
-			cin >> v;
-			cin >> m;
-			cin >> w;
-
-			for (int j = V; j >= v; j--)
-			{
-				for (int k = M; k >= m; k--)
-					dp[j][k] = max(dp[j][k], dp[j-v][k - m] + w);
-			}
-		}
-
-		cout << dp[V][M];
-
-		return 0;
-	}
-
-	// AcWing 9. Grouping Bag Question
-	int maxWorthForGroupingBag()
-	{
-		int N, V;
-		cin >> N;
-		cin >> V;
-
-		vector<int> dp(V+1, 0);
-
-		for (int i = 0; i < N; i++)
-		{
-			int n;
-			cin >> n;
-
-			vector<int> vs(n, 0);
-			vector<int> ws(n, 0);
-
-			for (int j = 0; j < n; j++)
-			{
-				cin >> vs[j];
-				cin >> ws[j];
-			}
-
-			for (int j = V; j > 0; j--)
-			{
-				for (int k = 0; k < n; k++)
-				{
-					if (j >= vs[k])
-						dp[j] = max(dp[j], dp[j - vs[k]] + ws[k]);
-				}
-			}
-		}
-
-		cout << dp[V];
-
-		return 0;
-	}
-
-	// AcWing 11. Number of Solutions of Bag Question
-	int maxNumberOfSolutionsOfBag()
-	{
-		int mod = 1e9 + 7;
-		int N, V;
-		cin >> N;
-		cin >> V;
-
-		vector<int> W(V+1, INT_MIN);
-		vector<int> S(V+1, 0);
-		W[0] = 0;
-		S[0] = 1;
-
-		for(int i = 0; i < N; i++)
-		{
-			int v, w;
-			cin >> v;
-			cin >> w;
-
-			for (int j = V; j >= v; j--)
-			{
-				int worth = max(W[j], W[j-v]+w);
-				if (worth == W[j-v]+w)
-				{
-					if (worth == W[j])
-						S[j] = (S[j] + S[j-v]) % mod;
-					else
-						S[j] = S[j-v];
-				}
-				W[j] = worth;
-			}
-		}
-
-		int max_worth = *max_element(W.begin(), W.end());
-		int sol_num = 0;
-
-		for (int i = 0; i <= V; i++)
-		{
-			if (W[i] == max_worth)
-				sol_num += S[i];
-		}
-
-		cout << sol_num;
-
-		return 0;
-	}
-
-	// AcWing 12. Solution of Bag Question
-	int solutionOfBag()
-	{
-		int N, V;
-		cin >> N;
-		cin >> V;
-
-		vector<int> v(N, 0);
-		vector<int> w(N, 0);
-
-		for(int i = 0; i < N; i++)
-		{
-			cin >> v[i];
-			cin >> w[i];
-		}
-
-		vector<vector<int>> dp(N+1, vector<int>(V+1, 0));
-
-		// In general the max worth is stored in the dp[N][V], but the question is looking for the solution of minimum dictionary order,
-		// thus, we must iterate through goods in inverted order to store the max worth into dp[0][V]. 
-		for (int i = N-1; i >= 0; i--)
-		{
-			for (int j = 1; j <= V; j++)
-			{
-				dp[i][j] = dp[i+1][j]; // two-dimensions array, we ought to keep the same results as previous sub-questions for the elements before coordinate v[i].
-				if (j >= v[i])
-					dp[i][j] = max(dp[i][j], dp[i+1][j-v[i]] + w[i]);
-			}
-		}
-
-		// Start from the 1st good to check whether the given good should be chosen. In this way we can obtain the solution of minimum dictionary order.
-		for (int i = 0; i < N; i++)
-		{
-			if (V >= v[i] && dp[i][V] == dp[i+1][V-v[i]] + w[i])
-			{
-				cout << i + 1 << " ";
-				V -= v[i];
-			}
-		}
-
-		return 0;
-	}
-
-	// 62. Unique Paths
-	int uniquePaths(int m, int n)
-	{
-		vector<int> dp1(n+1, 0);
-		vector<int> dp2(n+1, 0);
-
-		dp1[1] = 1;
-
-		for(int i = 0; i < m; i++)
-		{
-			for(int j = 1; j <= n; j++)
-				dp2[j] = dp1[j] + dp2[j-1];
-
-			swap(dp1, dp2); 
-		}
-
-		return dp1[n];
-	}
-
-	// 64. Minimum Path Sum
-	int minPathSum(vector<vector<int>>& grid)
-	{
-		int n = grid.size();
-		if(0 == n)
-			return 0;
-		int m = grid.front().size();
-		if(0 == m)
-			return 0;
-
-		for(int i = 0; i < n; i++)
-		{
-			for(int j = 0; j < m; j++)
-			{
-				if(0 == i && 0 == j)
-					continue;
-				else if(0 == i)
-					grid[i][j] += grid[i][j-1];
-				else if(0 == j)
-					grid[i][j] += grid[i-1][j];
-				else
-					grid[i][j] += min(grid[i-1][j], grid[i][j-1]);
-			}
-		}
-
-		return grid[n-1][m-1];
-    }
-
-	// 63. Unique Paths II
-	int uniquePathsWithObstacles(vector<vector<int>>& obstacleGrid)
-	{
-		int n = obstacleGrid.size();
-		if(0 == n)
-			return 0;
-		int m = obstacleGrid.front().size();
-		if(0 == m)
-			return 0;
-		
-		vector<int> dp1(m+1, 0);
-		vector<int> dp2(m+1, 0);
-
-		dp1[1] = 1;
-
-		for(int i = 0; i < n; i++)
-		{
-			for(int j = 1; j <= m; j++)
-			{
-				if(1 == obstacleGrid[i][j-1])
-					dp2[j] = 0;
-				else
-					dp2[j] = dp1[j] + dp2[j-1]; 
-			}
-			swap(dp1, dp2);
-		}
-
-		return dp1[m];
-    }
-
-	// 887. Super Egg Drop
-	int superEggDrop(int K, int N)
-	{
-		if(1 == K || N < 3)
-			return N;
-
-		vector<int> dp1(N+1, 0);
-		vector<int> dp2(N+1, 0);
-
-		for(int i = 1; i <= N; i++)
-			dp1[i] = i;
-
-		for(int k = 2; k <= K; k++)
-		{
-			/*
-				More eggs and more steps will increase the number of floors could be tested.
-				With constant eggs, the number of floors could be tested will increase along with the increasing steps.
-				But increasing eggs cannot increase the number of tested floors when the number of steps is constant.
-				The number of tested floors would start increasing from the spot where k == m.
-			*/
-			for(int m = k; m <= N; m++)
-			{
-				if(m == k)
-					dp2[m] = dp1[m-1]*2 + 1;
-				else
-					dp2[m] = dp1[m-1] + dp2[m-1] + 1;
-				
-				if(dp2[m] >= N)
-				{
-					if(k == K || m == k)
-						return m;
-					break;
-				}
-			}
-
-			swap(dp1, dp2);
-		}
-        
-		return 0;
-    }
-};
-
-// 303. Range Sum Query - Immutable
-class NumArray {
-public:
-	vector<int> dp;
-
-    NumArray(vector<int>& nums) {
-        int n = nums.size();
-		if(0 == n)
-			return;
-
-		dp.resize(n+1, 0);
-
-		for(int i = 1; i <= n; i++)
-			dp[i] = dp[i-1] + nums[i-1];
-    }
-    
-    int sumRange(int i, int j) {
-        return dp[j+1] - dp[i];
-    }
-};
-
-// 304. Range Sum Query 2D - Immutable
-class NumMatrix {
-public:
-	vector<vector<int>> dp;
-
-    NumMatrix(vector<vector<int>>& matrix) {
-        int row = matrix.size();
-		if(0 == row)
-			return;
-		
-		int col = matrix.front().size();
-		if(0 == col)
-			return;
-
-		dp.resize(row+1, vector<int>(col+1, 0));
-
-		for(int i = 1; i <= row; i++)
-		{
-			for(int j = 1; j <= col; j++)
-				dp[i][j] = dp[i][j-1] + dp[i-1][j] - dp[i-1][j-1] + matrix[i-1][j-1]; 
-		}
-    }
-    
-    int sumRegion(int row1, int col1, int row2, int col2) {
-        return dp[row2+1][col2+1] - dp[row1][col2+1] - dp[row2+1][col1] + dp[row1][col1];
-    }
 };
 
 
@@ -1599,8 +221,8 @@ int main()
 
 	// 121. Best Time to Buy and Sell Stock
 	// vector<int> prices = { 7,1,5,3,6,4 };
-	// prices = { 7,6,4,3,1 };
-	// prices = {};
+	// // prices = { 7,6,4,3,1 };
+	// // prices = {};
 	// cout << "prices: [ ";
 	// printContainer(prices);
 	// cout << " ]" << endl;
@@ -1645,19 +267,19 @@ int main()
 	// cout << "Max profit: " << solu.maxProfitAtMostTwoTransactions(prices) << endl << endl;
 
 	// 188. Best Time to Buy and Sell Stock IV (at Most K Transactions)
-	// vector<int> prices = { 3,3,5,0,0,3,1,4 };
-	// prices = { 2,4,1 };
-	// prices = { 3,2,6,5,0,3 };
-	// cout << "prices: [ ";
-	// printContainer(prices);
-	// cout << " ]" << endl;
-	// int k = -1;
-	// while (k <= 0)
-	// {
-	// 	cout << "Transacions: ";
-	// 	cin >> k;
-	// }
-	// cout << "Max profit: " << solu.maxProfitAtMostKTransactions(k, prices) << endl << endl;
+	vector<int> prices = { 3,3,5,0,0,3,1,4 };
+	prices = { 2,4,1 };
+	prices = { 3,2,6,5,0,3 };
+	cout << "prices: [ ";
+	printContainer(prices);
+	cout << " ]" << endl;
+	int k = -1;
+	while (k <= 0)
+	{
+		cout << "Transacions: ";
+		cin >> k;
+	}
+	cout << "Max profit: " << solu.maxProfitAtMostKTransactions(k, prices) << endl << endl;
 
 	// 70. Climbing Stairs
 	// int n;
@@ -2032,7 +654,7 @@ int main()
 	// solu.maxNumberOfSolutionsOfBag();
 
 	// AcWing 12. Solution of Bag Question
-	solu.solutionOfBag();
+	// solu.solutionOfBag();
 
 	// 62. Unique Paths
 	// while(1)

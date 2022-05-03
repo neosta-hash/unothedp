@@ -34,7 +34,231 @@ void printContainer(vector<T> &container)
 class Solution
 {
 public:
-	
+	// 121. Best Time to Buy and Sell Stock
+	int maxProfit(vector<int>& prices) {
+		int n = prices.size();
+
+		if (n == 0)
+			return 0;
+
+		int buy = prices[0];
+		int mp = 0;
+
+		for (int i = 1; i < n; ++i) {
+			if (prices[i] < buy)
+				buy = prices[i];
+			else
+				mp = max(mp, prices[i] - buy);
+		}
+
+		return mp;
+	}
+
+	// 122. Best Time to Buy and Sell Stock II
+	int maxProfitII(vector<int>& prices) {
+		int n = prices.size();
+
+		if (n == 0)
+			return 0;
+
+		int mp = 0;
+
+		for (int i = 1; i < n; ++i) {
+			// int profit = prices[i] - prices[i - 1];
+			// if (profit > 0)
+			// 	mp += profit;
+
+			mp += max(0, prices[i] - prices[i - 1]);
+		}
+
+		return mp;
+	}
+
+	// 309. Best Time to Buy and Sell Stock with Cooldown
+	int maxProfitWithCooldown(vector<int>& prices) {
+		int n = prices.size();
+
+		if (n <= 1)
+			return 0;
+
+		vector<int> buy(n, 0);
+		vector<int> sell(n, 0);
+
+		buy[0] = -prices[0];
+		buy[1] = max(-prices[0], -prices[1]);
+		sell[1] = max(0, buy[0] + prices[1]);
+
+		for (int i = 2; i < n; ++i) {
+			buy[i] = max(buy[i - 1], sell[i - 2] - prices[i]);
+			sell[i] = max(sell[i - 1], buy[i - 1] + prices[i]);
+		}
+
+		return sell[n - 1];
+	}
+
+	// 714. Best Time to Buy and Sell Stock with Transaction Fee
+	int maxProfitWithTransactionFee(vector<int>& prices, int fee) {
+		int n = prices.size();
+
+		if (n <= 1)
+			return 0;
+
+		int buy = -prices[0] - fee;
+		int sell = 0;
+
+		for (int i = 1; i < n; ++i) {
+			int hold = buy;
+			buy = max(buy, sell - prices[i] - fee);
+			sell = max(sell, hold + prices[i]);
+		}
+
+		return sell;
+	}
+
+	// 123. Best Time to Buy and Sell Stock III (at Most Two Transactions)
+	int maxProfitAtMostTwoTransactions(vector<int>& prices) {
+		if (prices.size() <= 1)
+			return 0;
+
+		int phases = 5;
+		vector<int> dp1(phases, INT_MIN);
+		vector<int> dp2(phases, 0);
+		dp1[0] = 0;
+
+		for (auto price : prices) {
+			for (int i = 0; i < phases; ++i) {
+				dp2[i] = dp1[i];
+				if (i % 2 && dp1[i - 1] != INT_MIN)
+					dp2[i] = max(dp1[i], dp1[i - 1] - price);
+				else if (i > 0 && dp1[i - 1] != INT_MIN)
+					dp2[i] = max(dp1[i], dp1[i - 1] + price);
+			}
+
+			swap(dp1, dp2);
+		}
+
+		int mp = dp1[0];
+		for (int i = 2; i < phases; i += 2)
+			mp = max(mp, dp1[i]);
+
+		return mp;
+	}
+
+	// 188. Best Time to Buy and Sell Stock IV (at Most K Transactions)
+	int maxProfitAtMostKTransactions(int k, vector<int>& prices) {
+		if (prices.size() <= 1)
+			return 0;
+
+		int phases = k * 2 + 1;
+		vector<int> dp1(phases, INT_MIN);
+		vector<int> dp2(phases, 0);
+		dp1[0] = 0;
+
+		for (auto price : prices) {
+			for (int i = 0; i < phases; ++i) {
+				dp2 [i] = dp1[i];
+				if (i % 2 && dp1[i - 1] != INT_MIN)
+					dp2[i] = max(dp1[i], dp1[i - 1] - price);
+				else if (i > 0 && dp1[i - 1] != INT_MIN)
+					dp2[i] = max(dp1[i], dp1[i - 1] + price);
+			}
+
+			swap(dp1, dp2);
+		}
+
+		int mp = 0;
+		for (int i = 2; i < phases; i += 2)
+			mp = max(mp, dp1[i]);
+
+		return mp;
+	}
+
+	// 70. Climbing Stairs
+	int climbStairs(int n) {
+		vector<int> dp = {0, 1, 2};
+
+		for (int i = 3; i <= n; ++i)
+			dp.emplace_back(dp[i - 1] + dp[i - 2]);
+
+		return dp[n];
+	}
+
+	// 746. Min Cost Climbing Stairs
+	int minCostClimbingStairs(vector<int>& cost) {
+		int n = cost.size();
+
+		if (n == 0)
+			return 0;
+		else if (n == 1)
+			return cost.front();
+		else if (n == 2)
+			return min(cost[0], cost[1]);
+
+		vector<int> dp = {cost[0], cost[1]};
+
+		for (int i = 2; i < n; ++i)
+			dp.emplace_back(min(dp[i - 1], dp[i - 2]) + cost[i]);
+
+		return min(dp[n - 1], dp[n - 2]);
+	}
+
+	// 413. Arithmetic Slices
+	int numberOfArithmeticSlices(vector<int>& nums) {
+		int n = nums.size();
+
+		if (n < 3)
+			return 0;
+
+		vector<int> dp(n, 0);
+		int num = 0;
+
+		for (int i = 2; i < n; ++i) {
+			if (nums[i] - nums[i - 1] == nums[i - 1] - nums[i - 2]) {
+				dp[i] = dp[i - 1] + 1;
+				num += dp[i];
+			}
+		}
+
+		return num;
+	}
+
+	// 300. Longest Increasing Subsequence
+	int lengthOfLIS(vector<int>& nums) {
+		int n = nums.size();
+
+		if (n == 0)
+			return 0;
+
+		vector<int> dp(n, 1);
+		int len = 1;
+
+		for (int i = 1; i < n; ++i) {
+			for (int j = 0; j < i; ++j) {
+				if (nums[i] > nums[j])
+					dp[i] = max(dp[i], dp[j] + 1);
+			}
+			len = max(len, dp[i]);
+		}
+
+		return len;
+	}
+
+	/**
+	 * TODO: Follow up
+	 * Binary search
+	 */
+	// int lengthOfLIS(vector<int>& nums) {
+	// 	int n = nums.size();
+	// }
+
+	// 646. Maximum Length of Pair Chain
+	 int findLongestChain(vector<vector<int>>& pairs) {
+		int n = pairs.size();
+
+		int len = 
+
+		return len;
+	}
 };
 
 int main()
@@ -135,20 +359,20 @@ int main()
 	// cout << "Length of longest increasing subsequence: " << solu.lengthOfLIS(nums) << endl << endl;
 
 	// 646. Maximum Length of Pair Chain
-	// vector<vector<int>> pairs;
-	// pairs = {
-	// 	{ 1,2 },
-	// 	{ 2,3 },
-	// 	{ 3,4 }
-	// };
+	vector<vector<int>> pairs;
+	pairs = {
+		{ 1,2 },
+		{ 2,3 },
+		{ 3,4 }
+	};
 
-	// pairs = {
-	// 	{ 3,4 },
-	// 	{ 2,3 },
-	// 	{ 1,2 }
-	// };
+	pairs = {
+		{ 3,4 },
+		{ 2,3 },
+		{ 1,2 }
+	};
 
-	// cout << "Length of the longest chain is: " << solu.findLongestChain(pairs) << endl << endl;
+	cout << "Length of the longest chain is: " << solu.findLongestChain(pairs) << endl << endl;
 
 	// 376. Wiggle Subsequence
 	// vector<int> nums = { 1,7,4,9,2,5 };

@@ -251,16 +251,627 @@ public:
 	// 	int n = nums.size();
 	// }
 
+
 	// 646. Maximum Length of Pair Chain
+	static bool cmpPairs(vector<int>& p1, vector<int>& p2) {
+		return p1.front() < p2.front();
+	}
+
 	 int findLongestChain(vector<vector<int>>& pairs) {
 		int n = pairs.size();
 
-		int len = 
+		if (n <= 1)
+			return n;
+
+		sort(pairs.begin(), pairs.end(), cmpPairs);
+
+		vector<int> dp(n, 1);
+		int len = 1;
+
+		for (int i = 1; i < n; ++i) {
+			for (int j = 0; j < i; ++j) {
+				if (pairs[i][0] > pairs[j][1])
+					dp[i] = max(dp[i], dp[j] + 1);
+			}
+			len = max(len, dp[i]);
+		}
 
 		return len;
 	}
+
+	// 376. Wiggle Subsequence
+	// int wiggleMaxLength(vector<int>& nums) {
+	// 	int n = nums.size();
+
+	// 	if (n <= 1)
+	// 		return n;
+
+	// 	vector<int> lw(n, 1);
+	// 	vector<int> rw(n, 1);
+	// 	int len = 1;
+
+	// 	for (int i = 1; i < n; ++i) {
+	// 		for (int j = 0; j < i; ++j) {
+	// 			if (nums[i] > nums[j])
+	// 				rw[i] = max(rw[i], lw[j] + 1);
+	// 			else if (nums[i] < nums[j])
+	// 				lw[i] = max(lw[i], rw[j] + 1);
+	// 		}
+	// 		len = max(len, max(lw[i], rw[i]));
+	// 	}
+
+	// 	return len;
+	// }
+
+	/**
+	 * Follow up
+	 * O(n)
+	 */
+	int wiggleMaxLength(vector<int>& nums) {
+		int n = nums.size();
+
+		if (n <= 1)
+			return n;
+
+		int lw = 1, rw = 1;
+
+		for (int i = 1; i < n; ++i) {
+			if (nums[i] > nums[i - 1])
+				rw = lw + 1;
+			else if (nums[i] < nums[i - 1])
+				lw = rw + 1;
+		}
+
+		return max(lw, rw);
+	}
+
+	// 198. House Robber
+	int rob(vector<int>& nums) {
+		int n = nums.size();
+
+		if (n == 0)
+			return 0;
+		else if (n == 1)
+			return nums.front();
+
+		vector<int> dp(n + 1, 0);
+
+		dp[1] = nums[0];
+		dp[2] = nums[1];
+
+		for (int i = 3; i <= n; ++i)
+			dp[i] = max(dp[i - 2], dp[i - 3]) + nums[i - 1];
+
+		return max(dp[n], dp[n - 1]);
+	}
+
+	// 213. House Robber II
+	int robII(vector<int>& nums) {
+		int n = nums.size();
+
+		if (n == 0)
+			return 0;
+		else if (n == 1)
+			return nums.front();
+
+		vector<int> dp1(n + 1, 0);
+		vector<int> dp2(n + 1, 0);
+
+		dp1[1] = nums[0];
+		dp1[2] = 0;
+
+		dp2[1] = 0;
+		dp2[2] = nums[1];
+
+		for (int i = 3; i <= n; ++i) {
+			dp2[i] = max(dp2[i - 2], dp2[i - 3]) + nums[i - 1];
+			if (i < n)
+				dp1[i] = max(dp1[i - 2], dp1[i - 3]) + nums[i - 1];
+		}
+
+		return max(max(dp1[n - 1], dp1[n - 2]), max(dp2[n], dp2[n - 1]));
+	}
+
+	// 53. Maximum Subarray
+	int maxSubArray(vector<int>& nums) {
+		int n = nums.size();
+
+		if (n == 0)
+			return 0;
+
+		int sum = 0;
+		int max_sum = INT_MIN;
+
+		for (int i = 0; i < n; ++i) {
+			sum = max(sum + nums[i], nums[i]);
+			max_sum = max(max_sum, sum);
+		}
+
+		return max_sum;
+	}
+
+	// 650. 2 Keys Keyboard
+	int minStepsWith2KeysKeyboard(int n) {
+		if (n == 0)
+			return 0;
+
+		vector<int> dp(n + 1, 0);
+
+		for (int i = 2; i <= n; ++i) {
+			dp[i] = i;
+
+			for (int j = i / 2; j >= 2; --j) {
+				if (i % j == 0) {
+					dp[i] = min(dp[i], i / j + dp[j]);
+					break;
+				}
+			}
+		}
+
+		return dp[n];
+	}
+
+	// 1218. Longest Arithmetic Subsequence of Given Difference
+	int longestSubsequence(vector<int>& arr, int difference) {
+		unordered_map<int, int> dp;
+		int max_len = 1;
+
+		for (auto num : arr) {
+			int expect = num + difference;
+
+			if (dp[num]) {
+				dp[expect] = dp[num] + 1;
+				max_len = max(max_len, dp[expect]);
+			} else
+				dp[expect] = 1;
+		}
+
+		return max_len;
+	}
+
+	// 392. Is Subsequence
+	bool isSubsequence(string s, string t) {
+		int pos = 0;
+
+		for (char c : s) {
+			pos = t.find(c, pos);
+			if (pos == -1)
+				return false;
+			++pos;
+		}
+
+		return true;
+	}
+
+	// 1143. Longest Common Subsequence
+	int longestCommonSubsequence(string text1, string text2) {
+		int n = text2.size();
+
+		vector<int> dp1(n + 1, 0);
+		vector<int> dp2(n + 1, 0);
+
+		for (char c : text1) {
+			for (int i = 1; i <= n; ++i) {
+				if (c == text2[i - 1])
+					dp2[i] = dp1[i - 1] + 1;
+				else
+					dp2[i] = max(dp2[i - 1], dp1[i]);
+			}
+
+			swap(dp1, dp2);
+		}
+
+		return dp1[n];
+	}
+
+	// 1092. Shortest Common Supersequence
+	string shortestCommonSupersequence(string str1, string str2) {
+		int n1 = str1.size();
+		int n2 = str2.size();
+
+		vector<vector<int>> dp(n1 + 1, vector<int>(n2 + 1, 0));
+		int i, j;
+
+		for (i = 1; i <= n1; ++i) {
+			for (j = 1; j <= n2; ++j) {
+				if (str1[i - 1] == str2[j - 1])
+					dp[i][j] = dp[i - 1][j - 1] + 1;
+				else
+					dp[i][j] = max(dp[i - 1][j], dp[i][j - 1]);
+			}
+		}
+
+		string scs = "";
+		char c;
+		i = n1;
+		j = n2;
+
+		while (i || j) {
+			if (!j)
+				c = str1[--i];
+			else if (!i)
+				c = str2[--j];
+			else if (str1[i - 1] == str2[j - 1])
+				c = str1[--i] = str2[--j];
+			else if (dp[i][j] == dp[i - 1][j])
+				c = str1[--i];
+			else if (dp[i][j] == dp[i][j - 1])
+				c = str2[--j];
+
+			scs = c + scs;
+		}
+
+		return scs;
+	}
+
+	// 5. Longest Palindromic Substring
+	int lenOfPalindrome(string &s, int l, int r) {
+		while (l <= r && l >= 0 && r < s.size() && s[l] == s[r])
+			--l, ++r;
+		
+		return r - l - 1;
+	}
+
+	string longestPalindrome(string s) {
+		int n = s.size();
+
+		if (n <= 1)
+			return s;
+
+		int max_len = 0;
+		int start = 0;
+
+		for (int i = 0; i < n; ++i) {
+			if (max_len >= (n - i) * 2 - 1)
+				break;
+
+			int len = max(lenOfPalindrome(s, i, i), lenOfPalindrome(s, i, i + 1));
+			if (len > max_len) {
+				max_len = len;
+				start = i - (len - 1) / 2;
+			}
+		}
+
+		return s.substr(start, max_len);
+	}
+
+	// 516. Longest Palindromic Subsequence
+	/**
+	 * Reverse the string as the second string
+	 * and find the LCS of these two strings.
+	 */
+	// int longestPalindromeSubseq(string s) {
+	// 	int n = s.size();
+
+	// 	vector<int> dp1(n + 1, 0);
+	// 	vector<int> dp2(n + 1, 0);
+
+	// 	for (int i = 1; i <= n; ++i) {
+	// 		for (int j = n; j >= 1; --j) {
+	// 			if (s[i - 1] == s[j - 1])
+	// 				dp2[n - j + 1] = dp1[n - j] + 1;
+	// 			else
+	// 				dp2[n - j + 1] = max(dp1[n - j + 1], dp2[n - j]);
+	// 		}
+
+	// 		swap(dp1, dp2);
+	// 	}
+
+	// 	return dp1[n];
+	// }
+
+	// int longestPalindromeSubseq(string s) {
+	// 	int n = s.size();
+
+	// 	vector<vector<int>> dp(n, vector<int>(n, 0));
+
+	// 	for (int len = 1; len <= n; ++len) {
+	// 		for (int i = 0; i + len <= n; ++i) {
+	// 			int j = i + len - 1;
+	// 			if (i == j) {
+	// 				dp[i][j] = 1;
+	// 				continue;
+	// 			}
+
+	// 			if (s[i] == s[j])
+	// 				dp[i][j] = dp[i + 1][j - 1] + 2;
+	// 			else
+	// 				dp[i][j] = max(dp[i + 1][j], dp[i][j - 1]);
+	// 		}
+	// 	}
+
+	// 	return dp[0][n - 1];
+	// }
+
+	int longestPalindromeSubseq(string s) {
+		int n = s.size();
+
+		vector<int> dp0(n, 0); // solutions for len = l
+		vector<int> dp1(n, 0); // solutions for len = l - 1
+		vector<int> dp2(n, 0); // solutions for len = l - 2
+
+		for (int len = 1; len <= n; ++len) {
+			for (int i = 0; i + len <= n; ++i) {
+				int j = i + len - 1;
+				if (i == j) {
+					dp0[i] = 1;
+					continue;
+				}
+
+				if (s[i] == s[j])
+					dp0[i] = dp2[i + 1] + 2;
+				else
+					dp0[i] = max(dp1[i], dp1[i + 1]);
+			}
+
+			swap(dp0, dp1);
+			swap(dp0, dp2);
+		}
+
+		return dp1[0];
+	}
+
+	// 583. Delete Operation for Two Strings
+	// LCS
+	// int minDeleteDistance(string word1, string word2) {
+	// 	int n1 = word1.size();
+	// 	int n2 = word2.size();
+
+	// 	vector<int> dp1(n2 + 1, 0);
+	// 	vector<int> dp2(n2 + 1, 0);
+
+	// 	for (auto c : word1) {
+	// 		for (int i = 1; i <= n2; ++i) {
+	// 			if (c == word2[i - 1])
+	// 				dp2[i] = dp1[i - 1] + 1;
+	// 			else
+	// 				dp2[i] = max(dp1[i], dp2[i - 1]);
+	// 		}
+
+	// 		swap(dp1, dp2);
+	// 	}
+
+	// 	return n1 + n2 - 2 * dp1[n2];
+	// }
+
+	int minDeleteDistance(string word1, string word2) {
+		int n1 = word1.size();
+		int n2 = word2.size();
+
+		vector<vector<int>> dp(n1 + 1, vector<int>(n2 + 1, 0));
+
+		for (int i = 1; i <= n2; ++i)
+			dp[0][i] = i;
+
+		for (int i = 1; i <= n1; ++i)
+			dp[i][0] = i;
+
+		for (int i = 1; i <= n1; ++i) {
+			for (int j = 1; j <= n2; ++j) {
+				if (word1[i - 1] == word2[j - 1])
+					dp[i][j] = dp[i - 1][j - 1];
+				else
+					dp[i][j] = min(dp[i - 1][j], dp[i][j - 1]) + 1;
+			}
+		}
+
+		return dp[n1][n2];
+	}
+
+	// 72. Edit Distance
+	// dp sizeof n1*n2, initialize the dp according to the reality.
+	// Learned it from others.
+	int minEditDistance(string word1, string word2) {
+		int n1 = word1.size();
+		int n2 = word2.size();
+
+		if (n1 == 0)
+			return n2;
+		else if (n2 == 0)
+			return n1;
+
+		vector<vector<int>> dp(n1, vector<int>(n2, 0));
+
+		for (int i = 0; i < n1; ++i) {
+			if (word1[i] == word2[0])
+				dp[i][0] = i;
+			else {
+				if (i == 0)
+					dp[i][0] = 1;
+				else
+					dp[i][0] = dp[i - 1][0] + 1;
+			}
+		}
+
+		for (int i = 0; i < n2; ++i) {
+			if (word1[0] == word2[i])
+				dp[0][i] = i;
+			else {
+				if (i == 0)
+					dp[0][i] = 1;
+				else
+					dp[0][i] = dp[0][i - 1] + 1;
+			}
+		}
+
+		for (int i = 1; i < n1; ++i) {
+			for (int j = 1; j < n2; ++j) {
+				if (word1[i] == word2[j])
+					dp[i][j] = dp[i - 1][j - 1];
+				else
+					dp[i][j] = min(dp[i-1][j-1], min(dp[i-1][j], dp[i][j-1])) + 1;
+			}
+		}
+
+		return dp[n1 - 1][n2 - 1];
+	}
+
+	// dp sizeof (n1+1)*(n2+1), initialize the dp according to the reality
+	// int minEditDistance(string word1, string word2) {
+	// 	int n1 = word1.size();
+	// 	int n2 = word2.size();
+
+	// 	vector<vector<int>> dp(n1 + 1, vector<int>(n2 + 1, 0));
+
+	// 	for (int i = 1; i <= n1; ++i)
+	// 		dp[i][0] = i;
+
+	// 	for (int i = 1; i <= n2; ++i)
+	// 		dp[0][i] = i;
+
+	// 	for (int i = 1; i <= n1; ++i) {
+	// 		for (int j = 1; j <= n2; ++j) {
+	// 			if (word1[i - 1] == word2[j - 1])
+	// 				dp[i][j] = dp[i - 1][j - 1];
+	// 			else
+	// 				dp[i][j] = min(dp[i-1][j-1], min(dp[i-1][j], dp[i][j-1])) + 1;
+	// 		}
+	// 	}
+
+	// 	return dp[n1][n2];
+	// }
+
+	// 416. Partition Equal Subset Sum
+	// bool canPartition(vector<int>& nums) {
+	// 	int n = nums.size();
+	// 	int sum = accumulate(nums.begin(), nums.end(), 0);
+
+	// 	if (sum % 2)
+	// 		return false;
+
+	// 	sum /= 2;
+
+	// 	vector<int> dp1(sum + 1, false);
+	// 	vector<int> dp2(sum + 1, false);
+	// 	dp1[0] = true;
+
+	// 	for (auto num : nums) {
+	// 		if (num > sum)
+	// 			return false;
+	// 		else if (num == sum)
+	// 			return true;
+
+	// 		for (int i = 0; i <= sum; ++i) {
+	// 			dp2[i] = dp1[i];
+	// 			if (i >= num && dp1[i - num]) {
+	// 				dp2[i] = true;
+	// 				if (i == sum)
+	// 					return true;
+	// 			}
+	// 		}
+
+	// 		swap(dp1, dp2);
+	// 	}
+
+	// 	return false;
+	// }
+
+	bool canPartition(vector<int>& nums) {
+		int n = nums.size();
+		int sum = accumulate(nums.begin(), nums.end(), 0);
+
+		if (sum % 2)
+			return false;
+
+		sum /= 2;
+
+		vector<bool> dp(sum + 1, false);
+		dp[0] = true;
+
+		for (auto num : nums) {
+			if (num > sum)
+				return false;
+			else if (num == sum)
+				return true;
+
+			for (int i = sum; i >= num; --i) {
+				if (dp[i - num]) {
+					dp[i] = true;
+					if (i == sum)
+						return true;
+				}
+			}
+		}
+
+		return false;
+	}
+
+	// 494. Target Sum
+	int findTargetSumWays(vector<int>& nums, int target) {
+		int sum = 0;
+
+		for (auto num : nums)
+			sum += abs(num);
+
+		if (sum < abs(target))
+			return 0;
+
+		int n = sum * 2 + 1;
+
+		vector<int> dp1(n, 0);
+		vector<int> dp2(n, 0);
+		dp1[sum] = 1;
+
+		for (auto num : nums) {
+			for (int i = 0; i < n; ++i) {
+				dp2[i] = 0;
+				if (i - num >= 0)
+					dp2[i] = dp1[i - num];
+				if (i + num < n)
+					dp2[i] += dp1[i + num]; 
+			}
+
+			swap(dp1, dp2);
+		}
+
+		return dp1[sum + target];
+	}
 };
 
+// 303. Range Sum Query - Immutable
+class NumArray {
+public:
+	vector<int> dp;
+
+	NumArray(vector<int>& nums) {
+
+		dp.push_back(0);
+
+		for (auto num : nums)
+			dp.push_back(dp.back() + num);
+	}
+
+	int sumRange(int left, int right) {
+		return dp[right + 1] - dp[left];
+	}
+};
+
+// 304. Range Sum Query 2D - Immutable
+class NumMatrix {
+public:
+	vector<vector<int>> dp;
+
+	NumMatrix(vector<vector<int>>& matrix) {
+		int n = matrix.size();
+		int m = matrix.front().size();
+
+		dp.resize(n + 1);
+		dp[0].resize(m + 1, 0);
+
+		for (int i = 1; i <= n; ++i) {
+			dp[i].emplace_back(0);
+
+			for (int j = 1; j <= m; ++j)
+				dp[i].emplace_back(dp[i-1][j] + dp[i][j-1] - dp[i-1][j-1] + matrix[i-1][j-1]);
+		}
+	}
+
+	int sumRegion(int row1, int col1, int row2, int col2) {
+		return dp[row2+1][col2+1] - dp[row2+1][col1] - dp[row1][col2+1] + dp[row1][col1];
+	}
+};
+
+// solved dp question count: 47
 int main()
 {
 	Solution solu;
@@ -359,20 +970,20 @@ int main()
 	// cout << "Length of longest increasing subsequence: " << solu.lengthOfLIS(nums) << endl << endl;
 
 	// 646. Maximum Length of Pair Chain
-	vector<vector<int>> pairs;
-	pairs = {
-		{ 1,2 },
-		{ 2,3 },
-		{ 3,4 }
-	};
+	// vector<vector<int>> pairs;
+	// pairs = {
+	// 	{ 1,2 },
+	// 	{ 2,3 },
+	// 	{ 3,4 }
+	// };
 
-	pairs = {
-		{ 3,4 },
-		{ 2,3 },
-		{ 1,2 }
-	};
+	// pairs = {
+	// 	{ 3,4 },
+	// 	{ 2,3 },
+	// 	{ 1,2 }
+	// };
 
-	cout << "Length of the longest chain is: " << solu.findLongestChain(pairs) << endl << endl;
+	// cout << "Length of the longest chain is: " << solu.findLongestChain(pairs) << endl << endl;
 
 	// 376. Wiggle Subsequence
 	// vector<int> nums = { 1,7,4,9,2,5 };
@@ -494,7 +1105,7 @@ int main()
 	// while (1)
 	// {
 	// 	cout << "String t: " << t << endl;
-	// 	cout << "Inuput string s: ";
+	// 	cout << "Inuput the substring s: ";
 	// 	cin >> s;
 	// 	cout << "s is a subsequence of t: " << (solu.isSubsequence(s, t) ? "true" : "false") << endl << endl;
 	// }
@@ -568,21 +1179,22 @@ int main()
 	// cout << "Can partition: " << (solu.canPartition(nums) ? "true" : "false") << endl << endl;
 
 	// 494. Target Sum
-	// vector<int> nums = { 1, 5, 11, 5 };
-	// // nums = { 1,1,2,5,5,5,5 };
-	// // nums = { 1, 3, 5 };
-	// nums = { 1, 1, 1, 1, 1 };
-	// // nums = { 1, 0 };
-	// cout << "nums: [ ";
-	// printContainer(nums);
-	// cout << " ]" << endl;
-	// int S;
-	// while (1)
-	// {
-	// 	cout << "Target Sum: ";
-	// 	cin >> S;
-	// 	cout << "Number of ways to get target sum: " << solu.findTargetSumWays(nums, S) << endl << endl;
-	// }
+	vector<int> nums = { 1, 5, 11, 5 };
+	// nums = { 1,1,2,5,5,5,5 };
+	// nums = { 1, 3, 5 };
+	nums = { 1, 1, 1, 1, 1 };
+	// nums = { 1, 0 };
+	cout << "nums: [ ";
+	printContainer(nums);
+	cout << " ]" << endl;
+	int S;
+	while (1)
+	{
+		cout << "3 << 3:" << (3<<3) << endl;
+		cout << "Target Sum: ";
+		cin >> S;
+		cout << "Number of ways to get target sum: " << solu.findTargetSumWays(nums, S) << endl << endl;
+	}
 
 	// AcWing 2. 01 Bag Question
 	// solu.maxWorthFor01Bag();
